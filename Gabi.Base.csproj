@@ -3,6 +3,14 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>9</LangVersion>
+    <Version>1.0.0</Version>
+    <PackageId>Gabi.Base</PackageId>
+    <Authors>Aymeric BIZOUARN</Authors>
+    <Company>GABI Software</Company>
+    <Description>Gabi.Base est une bibliothèque NuGet contenant un ensemble de classes de base pour faciliter le développement d'applications.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/gabi-soft/Gabi.Base</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +22,11 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.5.1" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="LICENSE" Pack="true" PackagePath="/" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>

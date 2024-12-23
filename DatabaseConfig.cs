@@ -40,7 +40,6 @@ namespace Gabi.Base
         /// </summary>
         public string Password
         {
-            get => _password;
             set => SetField(ref _password, value);
         }
 
@@ -75,7 +74,7 @@ namespace Gabi.Base
                 DataSource = Port.HasValue ? $"{Server},{Port}" : Server,
                 InitialCatalog = Database,
                 UserID = Login,
-                Password = Password
+                Password = _password
             }.ToString();
         }
 
