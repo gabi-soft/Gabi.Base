@@ -33,8 +33,11 @@ namespace Gabi.Base.Sql
             const string keysQuery =
                 @"SELECT COLUMN_NAME
                   FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = @TableName";
+#if NET8_0
+            var keys = connection.Query<string>(keysQuery, new { TableName = tableName }).ToHashSet();
+#else
             var keys = connection.Query<string>(keysQuery, new { TableName = tableName }).ToList();
-
+#endif
             foreach (var row in result)
             {
                 var isPk = keys.Contains(row.COLUMN_NAME + "");
