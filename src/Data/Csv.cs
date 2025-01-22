@@ -1,11 +1,10 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
 namespace Gabi.Base.Data
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-
     public class Csv
     {
         private readonly char _separator;
@@ -49,11 +48,8 @@ namespace Gabi.Base.Data
         }
 
         // Parse une ligne CSV avec ReadOnlySpan<char> et gestion des types
-#if NET8_0
-        private List<object> ParseLine(ReadOnlySpan<char> line)
-#else
-        private List<object> ParseLine(String line)
-#endif
+
+        private List<object> ParseLine(string line)
         {
             var fields = new List<object>();
             int currentPos = 0;
@@ -74,6 +70,7 @@ namespace Gabi.Base.Data
                     }
                     else
                     {
+                        field.Add(currentChar);
                         insideQuote = !insideQuote;
                     }
                 }
@@ -101,8 +98,8 @@ namespace Gabi.Base.Data
         {
             if (string.IsNullOrWhiteSpace(value))
                 return null;
-            if (value[0] == _quoteChar && value[2] == _quoteChar)
-                return value;
+            if (value.Length >= 3 && value[0] == _quoteChar && value[value.Length - 1] == _quoteChar)
+                return value.Substring(1, value.Length - 2);
             if (double.TryParse(value, out var doubleValue))
                 return doubleValue;
             if (int.TryParse(value, out var intValue))
@@ -119,19 +116,7 @@ namespace Gabi.Base.Data
         {
             foreach (var row in Rows)
             {
-                int trimIndex = row.Count; // Indique jusqu'où garder les éléments
-                for (int i = row.Count - 1; i >= 0; i--)
-                {
-                    if (row[i] == null || string.IsNullOrWhiteSpace(row[i]?.ToString()))
-                    {
-                        trimIndex = i; // Met à jour l'indice de coupure
-                    }
-                    else
-                    {
-                        trimIndex = row.Count; // Reset si une valeur non vide est rencontrée
-                    }
-                }
-                row.RemoveRange(trimIndex, row.Count - trimIndex); // Supprime les valeurs en excès
+                row.RemoveAll(static x => string.IsNullOrWhiteSpace(x?.ToString() ?? ""));
             }
         }
 
