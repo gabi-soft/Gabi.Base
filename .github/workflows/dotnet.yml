@@ -28,6 +28,6 @@ jobs:
     - name: Generate NuGet package
       run: dotnet pack -c Release /p:Version=${VERSION} --no-build --output .
     - name: Push on nuget.org
-      run: dotnet nuget push Gabi.Base.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGET_TOKEN}
       env:
-        GITHUB_TOKEN: ${{ secrets.NUGET_TOKEN }}
+        NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+      run: dotnet nuget push Gabi.Base.${VERSION}.nupkg -s "https://api.nuget.org/v3/index.json" -k "$NUGET_TOKEN"
