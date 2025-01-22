@@ -72,6 +72,8 @@ namespace Gabi.Base.Sql
         /// <returns>Une tâche représentant l'état de l'opération.</returns>
         public static async Task<bool> DropTableAsync(this IDbConnection dbConnection, DatabaseTable table)
         {
+            if (!SqlObjectName.IsValidSqlObjectName(table.Name)) return false;
+
             var query = $"DROP TABLE [{table.Name}]";
             try
             {
@@ -91,17 +93,19 @@ namespace Gabi.Base.Sql
         /// <param name="dbConnection">La connexion à la base de données.</param>
         /// <param name="table">La table à créer.</param>
         /// <returns>Une tâche représentant l'état de l'opération.</returns>
-        /// <exception cref="ArgumentException">La table doit avoir au moins une colonne pour créer une table.</exception>
+        /// <exception cref="ArgumentException">Erreur lors de la création</exception>
         public static async Task<bool> CreateTableAsync(this IDbConnection dbConnection, DatabaseTable table)
         {
             var columns = table.Columns;
             if (columns == null || columns.Count == 0)
                 throw new ArgumentException("La table doit avoir au moins une colonne pour créer une table.");
+            if (!SqlObjectName.IsValidSqlObjectName(table.Name))
+                throw new ArgumentException($"Le nom de la table ({table.Name}) n'est pas valide.");
 
             var primaryColomns = new List<string>();
             foreach (var column in columns)
                 if (column.IsPrimaryKey)
-                    primaryColomns.Add($"[{column.Name}]");
+                    primaryColomns.Add($"[{column.Name}]"); // Note : IsValidSqlObjectName was call in GetColumnDefinition
 
             var columnsString = string.Join(", ", columns.Select(static c => c.GetColumnDefinition()));
             if (primaryColomns.Count > 0)
