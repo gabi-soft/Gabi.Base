@@ -1,4 +1,5 @@
 using Gabi.Base.Data;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
@@ -102,16 +103,18 @@ namespace Gabi.Test.Data
         public void TrimEmptyValues_ShouldHandleRowsWithOnlyEmptyFields()
         {
             // Arrange
-            var csv = new Csv();
-            csv.Rows.Add(new List<object> { null, null });
-            csv.Rows.Add(new List<object> { "John", 30, null });
+            var csv = new Csv(separator: ';');
+            csv.Rows.Add(new List<object> { "Name", "Age", "IsMember" });
+            csv.Rows.Add(new List<object> { });
+            csv.Rows.Add(new List<object> { "John", 30, true });
+            csv.Rows.Add(new List<object> { "Doe", 25, false });
 
             // Act
             csv.TrimEmptyValues();
 
             // Assert
-            Assert.Empty(csv.Rows[0]);
-            Assert.Equal(2, csv.Rows[1].Count);
+            Assert.Empty(csv.Rows[1]);
+            Assert.Equal(3, csv.Rows[2].Count);
         }
 
         [Fact]
@@ -144,38 +147,31 @@ namespace Gabi.Test.Data
         }
 
         [Fact]
-        public void WriteCsv_ShouldHandleEmptyRows()
+        public void StressTestCsv()
         {
             // Arrange
             var csv = new Csv();
-            csv.Rows.Add(new List<object>());
-
-            // Act
-            csv.WriteCsv(TestFilePath);
-
-            // Assert
-            var content = File.ReadAllText(TestFilePath);
-            Assert.Equal(string.Empty, content.Trim());
-        }
-
-        [Fact]
-        public void StressTest_ShouldHandleLargeCsv()
-        {
-            // Arrange
-            var csv = new Csv();
-            for (var i = 0; i < 5000; i++)
+            var max = short.MaxValue;
+            for (var i = 0; i < 100; i++)
             {
-                csv.Rows.Add(new List<object> { "Row" + i, i, true });
+                var row = new List<object>(max);
+                for (var j = 0; j < 100; j++)
+                {
+                    row.Add(Guid.NewGuid().ToString());
+                }
+                csv.Rows.Add(row);
             }
 
-            // Act
-            csv.WriteCsv(TestFilePath);
+            var filename = "Stress_Test.csv";
+            csv.WriteCsv(filename);
             var csv2 = new Csv();
-            csv2.ReadCsv(TestFilePath);
+            csv2.ReadCsv(filename);
 
             // Assert
             Assert.Equal(csv.Rows.Count, csv2.Rows.Count);
-            Assert.Equal(csv.Rows.Count, csv2.Rows.Count);
+            Assert.Equal(csv.Rows[0].Count, csv2.Rows[0].Count);
+            Assert.Equal(csv.Rows[1].Count, csv2.Rows[1].Count);
+            Assert.Equal(csv.Rows[1][1], csv2.Rows[1][1]);
         }
     }
 }

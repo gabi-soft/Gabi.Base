@@ -33,7 +33,7 @@ namespace Gabi.Base.Sql
             const string keysQuery =
                 @"SELECT COLUMN_NAME
                   FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = @TableName";
-#if NET8_0
+#if NETCOREAPP1_0_OR_GREATER
             var keys = connection.Query<string>(keysQuery, new { TableName = tableName }).ToHashSet();
 #else
             var keys = connection.Query<string>(keysQuery, new { TableName = tableName }).ToList();
@@ -72,7 +72,7 @@ namespace Gabi.Base.Sql
         /// <returns>Une tâche représentant l'état de l'opération.</returns>
         public static async Task<bool> DropTableAsync(this IDbConnection dbConnection, DatabaseTable table)
         {
-            if (!SqlObjectName.IsValidSqlObjectName(table.Name)) return false;
+            if (!SqlObjectName.IsValidSqlObjectName(table.Name.AsSpan())) return false;
 
             var query = $"DROP TABLE [{table.Name}]";
             try
@@ -91,7 +91,7 @@ namespace Gabi.Base.Sql
         ///     Crée une table dans la base de données de manière asynchrone.
         /// </summary>
         /// <param name="dbConnection">La connexion à la base de données.</param>
-        /// <param name="table">La table à créer.</param>
+        /// <param name="table">La table a créé.</param>
         /// <returns>Une tâche représentant l'état de l'opération.</returns>
         /// <exception cref="ArgumentException">Erreur lors de la création</exception>
         public static async Task<bool> CreateTableAsync(this IDbConnection dbConnection, DatabaseTable table)
@@ -99,13 +99,14 @@ namespace Gabi.Base.Sql
             var columns = table.Columns;
             if (columns == null || columns.Count == 0)
                 throw new ArgumentException("La table doit avoir au moins une colonne pour créer une table.");
-            if (!SqlObjectName.IsValidSqlObjectName(table.Name))
+            if (!SqlObjectName.IsValidSqlObjectName(table.Name.AsSpan()))
                 throw new ArgumentException($"Le nom de la table ({table.Name}) n'est pas valide.");
 
             var primaryColomns = new List<string>();
             foreach (var column in columns)
                 if (column.IsPrimaryKey)
-                    primaryColomns.Add($"[{column.Name}]"); // Note : IsValidSqlObjectName was call in GetColumnDefinition
+                    primaryColomns.Add(
+                        $"[{column.Name}]"); // Note : IsValidSqlObjectName was call in GetColumnDefinition
 
             var columnsString = string.Join(", ", columns.Select(static c => c.GetColumnDefinition()));
             if (primaryColomns.Count > 0)

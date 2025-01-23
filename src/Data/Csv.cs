@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,9 +8,8 @@ namespace Gabi.Base.Data
 {
     public class Csv
     {
-        private readonly char _separator;
         private readonly char _quoteChar;
-        public List<List<object>> Rows { get; private set; }
+        private readonly char _separator;
 
         public Csv(char separator = ';', char quoteChar = '"')
         {
@@ -19,13 +18,19 @@ namespace Gabi.Base.Data
             Rows = new List<List<object>>();
         }
 
+        public List<List<object>> Rows { get; }
+
         // Lecture du CSV avec gestion des types
         public void ReadCsv(string filePath)
         {
             Rows.Clear();
             foreach (var line in File.ReadLines(filePath))
             {
-                Rows.Add(ParseLine(line));
+                var lineSpan = line.AsSpan();
+                if (lineSpan.Length == 0)
+                    Rows.Add(new List<object>());
+                else
+                    Rows.Add(ParseLine(lineSpan));
             }
         }
 
@@ -37,10 +42,10 @@ namespace Gabi.Base.Data
 
             foreach (var row in Rows)
             {
+                if (row.Count == 0) continue;
                 var rowValues = row
-                    .Select(x => x ?? "")
                     .Select(
-                        x => (x is string str && (ConvertToType(str) is not string || str.Contains(_quoteChar)))
+                        x => x is string str && (ConvertToType(str) is not string || str.Contains(_quoteChar))
                             ? $"{_quoteChar}{str.Replace($"{_quoteChar}", $"{_quoteChar}{_quoteChar}")}{_quoteChar}"
                             : x?.ToString()
                     );
@@ -48,77 +53,79 @@ namespace Gabi.Base.Data
             }
         }
 
-        // Parse une ligne CSV avec ReadOnlySpan<char> et gestion des types
-
-        private List<object> ParseLine(string line)
+        private List<object> ParseLine(ReadOnlySpan<char> line)
         {
-            var fields = new List<object>();
-            int currentPos = 0;
-            bool insideQuote = false;
-            List<char> field = new List<char>();
+            var nbField = line.Count(_separator) + 1;
+            var fields = new List<object>(nbField);
+            if (line.Length == 0) return fields;
 
-            while (currentPos < line.Length)
+            var currentPos = 0;
+            var insideQuote = false;
+
+            var field = new char[line.Length].AsSpan();
+            var fieldPos = 0;
+
+            while (currentPos < line.Length && nbField > 1)
             {
-                char currentChar = line[currentPos];
+                var currentChar = line[currentPos];
 
                 if (currentChar == _quoteChar)
                 {
                     if (insideQuote && currentPos + 1 < line.Length && line[currentPos + 1] == _quoteChar)
                     {
-                        // Double quote within quoted field
-                        field.Add(currentChar);
-                        currentPos++; // Skip the next quote
+                        field[fieldPos] = currentChar;
+                        currentPos++;
                     }
                     else
                     {
-                        field.Add(currentChar);
+                        field[fieldPos] = currentChar;
                         insideQuote = !insideQuote;
                     }
+
+                    fieldPos++;
                 }
                 else if (currentChar == _separator && !insideQuote)
                 {
-                    // End of field, convert it to the appropriate type
-                    fields.Add(ConvertToType(new string(field.ToArray())));
-                    field.Clear();
+                    fields.Add(ConvertToType(field.Slice(0, fieldPos)));
+                    fieldPos = 0;
                 }
                 else
                 {
-                    field.Add(currentChar);
+                    field[fieldPos] = currentChar;
+                    fieldPos++;
                 }
 
                 currentPos++;
             }
 
             // Ajouter le dernier champ
-            fields.Add(ConvertToType(new string(field.ToArray())));
+            fields.Add(ConvertToType(field.Slice(0, fieldPos)));
             return fields;
         }
 
         // Convertir une chaîne en un type spécifique
-        private object ConvertToType(string value)
+        private object ConvertToType(ReadOnlySpan<char> value)
         {
-            if (string.IsNullOrWhiteSpace(value))
+            var strValue = value;
+            if (value.Length == 0)
                 return null;
             if (value.Length >= 3 && value[0] == _quoteChar && value[value.Length - 1] == _quoteChar)
-                return value.Substring(1, value.Length - 2);
-            if (double.TryParse(value, out var doubleValue))
+                return value.Slice(1, value.Length - 2).ToString();
+            if (double.TryParse(strValue, out var doubleValue))
                 return doubleValue;
-            if (int.TryParse(value, out var intValue))
+            if (int.TryParse(strValue, out var intValue))
                 return intValue;
-            if (bool.TryParse(value, out var boolValue))
+            if (bool.TryParse(strValue, out var boolValue))
                 return boolValue;
-            if (DateTime.TryParse(value, out var dateTimeValue))
+            if (DateTime.TryParse(strValue, out var dateTimeValue))
                 return dateTimeValue;
             // Pour les autres types, on renvoie la chaîne telle quelle
-            return value;
+            return value.ToString();
         }
 
         public void TrimEmptyValues()
         {
-            foreach (var row in Rows)
-            {
-                row.RemoveAll(static x => string.IsNullOrWhiteSpace(x?.ToString() ?? ""));
-            }
+            foreach (var row in Rows) row.RemoveAll(static x => x == null || x == string.Empty);
         }
 
         public void NormalizeRowLengths(object fillValue = null)
@@ -126,15 +133,11 @@ namespace Gabi.Base.Data
             if (Rows.Count == 0) return;
 
             // Déterminer la longueur maximale
-            int maxLength = Rows.Max(row => row.Count);
+            var maxLength = Rows.Max(row => row.Count);
 
             foreach (var row in Rows)
-            {
                 while (row.Count < maxLength)
-                {
                     row.Add(fillValue);
-                }
-            }
         }
     }
 }
