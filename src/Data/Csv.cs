@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Gabi.Base.Data
 {
@@ -29,21 +30,21 @@ namespace Gabi.Base.Data
         }
 
         // Écriture du CSV avec gestion des types
-        public void WriteCsv(string filePath)
+        public void WriteCsv(string filePath, bool append = false, Encoding encoding = null)
         {
-            using (var writer = new StreamWriter(filePath))
+            encoding ??= Encoding.Default;
+            using var writer = new StreamWriter(filePath, false, encoding);
+
+            foreach (var row in Rows)
             {
-                foreach (var row in Rows)
-                {
-                    var rowValues = row
-                        .Select(x => x ?? "")
-                        .Select(
-                            x => (x is string str && ConvertToType(str) is not string)
-                                ? $"{_quoteChar}{str}{_quoteChar}"
-                                : x?.ToString()
-                        );
-                    writer.WriteLine(string.Join(_separator.ToString(), row));
-                }
+                var rowValues = row
+                    .Select(x => x ?? "")
+                    .Select(
+                        x => (x is string str && ConvertToType(str) is not string)
+                            ? $"{_quoteChar}{str}{_quoteChar}"
+                            : x?.ToString()
+                    );
+                writer.WriteLine(string.Join(_separator.ToString(), rowValues));
             }
         }
 
