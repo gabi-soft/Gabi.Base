@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System;
 
 namespace Gabi.Base.Sql
 {
@@ -71,7 +71,7 @@ namespace Gabi.Base.Sql
         /// <returns>La définition de la colonne sous forme de chaîne SQL.</returns>
         public string GetColumnDefinition()
         {
-            if (!SqlObjectName.IsValidSqlObjectName(Name))
+            if (!SqlObjectName.IsValidSqlObjectName(Name.AsSpan()))
                 throw new ArgumentException($"Le nom de la colonne ({Name}) n'est pas valide.");
 
             string columnDefinition;

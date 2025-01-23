@@ -1,4 +1,5 @@
 using Gabi.Base.Data;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
@@ -58,6 +59,7 @@ namespace Gabi.Test.Data
             // Arrange
             var csv = new Csv(separator: ';');
             csv.Rows.Add(new List<object> { "Name", "Age", "IsMember" });
+            csv.Rows.Add(new List<object> { });
             csv.Rows.Add(new List<object> { "John", 30, true });
             csv.Rows.Add(new List<object> { "Doe", 25, false });
 
@@ -102,6 +104,34 @@ namespace Gabi.Test.Data
             Assert.Equal(2, csv.Rows[0].Count);
             Assert.Equal(2, csv.Rows[1].Count);
             Assert.Equal("N/A", csv.Rows[1][1]);
+        }
+
+        [Fact]
+        public void StressTestCsv()
+        {
+            // Arrange
+            var csv = new Csv();
+            var max = short.MaxValue;
+            for (var i = 0; i < 100; i++)
+            {
+                var row = new List<object>(max);
+                for (var j = 0; j < 100; j++)
+                {
+                    row.Add(Guid.NewGuid().ToString());
+                }
+                csv.Rows.Add(row);
+            }
+
+            var filename = "Stress_Test.csv";
+            csv.WriteCsv(filename);
+            var csv2 = new Csv();
+            csv2.ReadCsv(filename);
+
+            // Assert
+            Assert.Equal(csv.Rows.Count, csv2.Rows.Count);
+            Assert.Equal(csv.Rows[0].Count, csv2.Rows[0].Count);
+            Assert.Equal(csv.Rows[1].Count, csv2.Rows[1].Count);
+            Assert.Equal(csv.Rows[1][1], csv2.Rows[1][1]);
         }
     }
 }
