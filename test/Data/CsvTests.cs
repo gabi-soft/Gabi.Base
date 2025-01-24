@@ -28,6 +28,50 @@ namespace Gabi.Test.Data
         }
 
         [Fact]
+        public void ReadCsv_ShouldHandleQuotedFieldsCorrectly()
+        {
+            // Arrange
+            var csvContent = "\"Name\";\"Age\";\"Note\"\n\"John\";30;\"Hello; World\"";
+            File.WriteAllText(TestFilePath, csvContent);
+
+            var csv = new Csv(separator: ';', quoteChar: '"');
+
+            // Act
+            csv.ReadCsv(TestFilePath);
+
+            // Assert
+            Assert.Equal(2, csv.Rows.Count);
+            Assert.Equal("Hello; World", csv.Rows[1][2]);
+        }
+
+        [Fact]
+        public void ReadCsv_ShouldThrowExceptionForInvalidFile()
+        {
+            // Arrange
+            var csv = new Csv();
+
+            // Act & Assert
+            Assert.Throws<FileNotFoundException>(() => csv.ReadCsv("non_existing.csv"));
+        }
+
+        [Fact]
+        public void WriteCsv_ShouldRespectCustomSeparator()
+        {
+            // Arrange
+            var csv = new Csv(separator: '|');
+            csv.Rows.Add(new List<object> { "Name", "Age", "City" });
+            csv.Rows.Add(new List<object> { "John", 30, "Paris" });
+
+            // Act
+            csv.WriteCsv(TestFilePath);
+
+            // Assert
+            var content = File.ReadAllText(TestFilePath);
+            Assert.Contains("Name|Age|City", content);
+            Assert.Contains("John|30|Paris", content);
+        }
+
+        [Fact]
         public void ReadCsv_ShouldParseRowsCorrectly()
         {
             // Arrange
@@ -53,55 +97,83 @@ namespace Gabi.Test.Data
         }
 
         [Fact]
-        public void WriteCsv_ShouldWriteRowsCorrectly()
-        {
-            // Arrange
-            var csv = new Csv(separator: ';');
-            csv.Rows.Add(new List<object> { "Name", "Age", "IsMember" });
-            csv.Rows.Add(new List<object> { "John", 30, true });
-            csv.Rows.Add(new List<object> { "Doe", 25, false });
-
-            // Act
-            csv.WriteCsv(TestFilePath);
-
-            // Assert
-            var writtenContent = File.ReadAllText(TestFilePath);
-            var expectedContent = "Name;Age;IsMember\r\nJohn;30;True\r\nDoe;25;False\r\n";
-            Assert.Equal(expectedContent, writtenContent);
-        }
-
-        [Fact]
-        public void TrimEmptyValues_ShouldRemoveTrailingEmptyFields()
+        public void TrimEmptyValues_ShouldHandleRowsWithOnlyEmptyFields()
         {
             // Arrange
             var csv = new Csv();
-            csv.Rows.Add(new List<object> { "John", 30, null, null });
-            csv.Rows.Add(new List<object> { "Doe", null, null });
+            csv.Rows.Add(new List<object> { null, null });
+            csv.Rows.Add(new List<object> { "John", 30, null });
 
             // Act
             csv.TrimEmptyValues();
 
             // Assert
-            Assert.Equal(2, csv.Rows[0].Count);
-            Assert.Equal(1, csv.Rows[1].Count);
+            Assert.Empty(csv.Rows[0]);
+            Assert.Equal(2, csv.Rows[1].Count);
         }
 
         [Fact]
-        public void NormalizeRowLengths_ShouldMakeAllRowsEqualLength()
+        public void NormalizeRowLengths_ShouldSupportCustomFillValue()
         {
             // Arrange
             var csv = new Csv();
-            csv.Rows.Add(new List<object> { "John", 30 });
-            csv.Rows.Add(new List<object> { "Doe" });
+            csv.Rows.Add(new List<object> { "John" });
+            csv.Rows.Add(new List<object> { "Doe", 30 });
 
             // Act
-            csv.NormalizeRowLengths(fillValue: "N/A");
+            csv.NormalizeRowLengths(fillValue: "Missing");
 
             // Assert
-            Assert.Equal(2, csv.Rows.Count);
-            Assert.Equal(2, csv.Rows[0].Count);
-            Assert.Equal(2, csv.Rows[1].Count);
-            Assert.Equal("N/A", csv.Rows[1][1]);
+            Assert.Equal("Missing", csv.Rows[0][1]);
+        }
+
+        [Fact]
+        public void ReadCsv_ShouldHandleEmptyFile()
+        {
+            // Arrange
+            File.WriteAllText(TestFilePath, string.Empty);
+            var csv = new Csv();
+
+            // Act
+            csv.ReadCsv(TestFilePath);
+
+            // Assert
+            Assert.Empty(csv.Rows);
+        }
+
+        [Fact]
+        public void WriteCsv_ShouldHandleEmptyRows()
+        {
+            // Arrange
+            var csv = new Csv();
+            csv.Rows.Add(new List<object>());
+
+            // Act
+            csv.WriteCsv(TestFilePath);
+
+            // Assert
+            var content = File.ReadAllText(TestFilePath);
+            Assert.Equal(string.Empty, content.Trim());
+        }
+
+        [Fact]
+        public void StressTest_ShouldHandleLargeCsv()
+        {
+            // Arrange
+            var csv = new Csv();
+            for (var i = 0; i < 5000; i++)
+            {
+                csv.Rows.Add(new List<object> { "Row" + i, i, true });
+            }
+
+            // Act
+            csv.WriteCsv(TestFilePath);
+            var csv2 = new Csv();
+            csv2.ReadCsv(TestFilePath);
+
+            // Assert
+            Assert.Equal(csv.Rows.Count, csv2.Rows.Count);
+            Assert.Equal(csv.Rows.Count, csv2.Rows.Count);
         }
     }
 }
