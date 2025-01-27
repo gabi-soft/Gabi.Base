@@ -40,8 +40,8 @@ namespace Gabi.Base.Data
                 var rowValues = row
                     .Select(x => x ?? "")
                     .Select(
-                        x => (x is string str && ConvertToType(str) is not string)
-                            ? $"{_quoteChar}{str}{_quoteChar}"
+                        x => (x is string str && (ConvertToType(str) is not string || str.Contains(_quoteChar)))
+                            ? $"{_quoteChar}{str.Replace($"{_quoteChar}", $"{_quoteChar}{_quoteChar}")}{_quoteChar}"
                             : x?.ToString()
                     );
                 writer.WriteLine(string.Join(_separator.ToString(), rowValues));
