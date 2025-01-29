@@ -1,31 +1,31 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
-    <LangVersion>9</LangVersion>
-    <Version>1.0.0</Version>
-    <PackageId>Gabi.Base</PackageId>
-    <Authors>Aymeric BIZOUARN</Authors>
-    <Company>GABI Software</Company>
-    <Description>Gabi.Base est une bibliothèque NuGet contenant un ensemble de classes de base pour faciliter le développement d'applications.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/gabi-soft/Gabi.Base</RepositoryUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
+		<LangVersion>9</LangVersion>
+		<Version>1.0.0</Version>
+		<PackageId>Gabi.Base</PackageId>
+		<Authors>Aymeric BIZOUARN</Authors>
+		<Company>GABI Software</Company>
+		<Description>Gabi.Base est une bibliothèque NuGet contenant un ensemble de classes de base pour faciliter le développement d'applications.</Description>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryUrl>https://github.com/gabi-soft/Gabi.Base</RepositoryUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.1.35" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Serilog" Version="4.2.0" />
-    <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Dapper" Version="2.1.35" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Serilog" Version="4.2.0" />
+		<PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+		<PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-	  <None Include="..\README.md" Pack="true" PackagePath="\"/>
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
 
 </Project>

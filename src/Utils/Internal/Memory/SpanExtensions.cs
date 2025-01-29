@@ -1,4 +1,6 @@
-﻿namespace Gabi.Base
+﻿// ReSharper disable CheckNamespace
+
+namespace Gabi.Base
 {
     internal static class SpanExtensions
     {
@@ -7,6 +9,7 @@
         {
             return new Span<T>(ref array);
         }
+
         public static ReadOnlySpan<char> AsSpan(this string str)
         {
             var array = new char[str.Length];

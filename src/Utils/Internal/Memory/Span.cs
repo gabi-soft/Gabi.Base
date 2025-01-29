@@ -1,5 +1,7 @@
 ﻿using System;
 
+// ReSharper disable CheckNamespace
+
 #if !NETCOREAPP2_1_OR_GREATER
 namespace Gabi.Base
 # else
@@ -12,6 +14,24 @@ namespace Gabi.Base.IGNORE
     internal class Span<T>
 #endif
     {
+        protected bool Equals(Span<T> other)
+        {
+            return Equals(_array, other._array);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((Span<T>)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return _array != null ? _array.GetHashCode() : 0;
+        }
+
         public static readonly T[] _fakeRef = Array.Empty<T>();
         private readonly T[] _array;
 
@@ -20,7 +40,7 @@ namespace Gabi.Base.IGNORE
             _array = _fakeRef;
         }
 
-        public Span(ref T[]? array)
+        public Span(ref T[] array)
         {
             _array = array ?? _fakeRef;
         }
@@ -30,7 +50,7 @@ namespace Gabi.Base.IGNORE
             _array = span._array;
         }
 
-        public Span(T[]? array, int start, int length)
+        public Span(T[] array, int start, int length)
         {
             _array = length > 0 ? new T[length] : _fakeRef;
             Array.Copy(array, start, _array, 0, 0 + length);
@@ -53,7 +73,7 @@ namespace Gabi.Base.IGNORE
             return !(left == right);
         }
 
-        public static implicit operator Span<T>(T[]? array)
+        public static implicit operator Span<T>(T[] array)
         {
             return new Span<T>(ref array);
         }
@@ -100,7 +120,7 @@ namespace Gabi.Base.IGNORE
 
         public static bool operator ==(Span<T> left, Span<T> right)
         {
-            return right._array == left._array;
+            return right?._array == left?._array;
         }
 
         public override string ToString()

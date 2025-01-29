@@ -15,12 +15,7 @@ namespace Gabi.Test.Data
             Cleanup();
         }
 
-        public void Dispose()
-        {
-            Cleanup();
-        }
-
-        private void Cleanup()
+        private static void Cleanup()
         {
             if (File.Exists(TestFilePath))
             {

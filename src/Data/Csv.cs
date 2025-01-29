@@ -106,18 +106,17 @@ namespace Gabi.Base.Data
         // Convertir une chaîne en un type spécifique
         private object ConvertToType(ReadOnlySpan<char> value)
         {
-            var strValue = value;
             if (value.Length == 0)
                 return null;
             if (value.Length >= 3 && value[0] == _quoteChar && value[value.Length - 1] == _quoteChar)
                 return value.Slice(1, value.Length - 2).ToString();
-            if (double.TryParse(strValue, out var doubleValue))
+            if (double.TryParse(value, out var doubleValue))
                 return doubleValue;
-            if (int.TryParse(strValue, out var intValue))
+            if (int.TryParse(value, out var intValue))
                 return intValue;
-            if (bool.TryParse(strValue, out var boolValue))
+            if (bool.TryParse(value, out var boolValue))
                 return boolValue;
-            if (DateTime.TryParse(strValue, out var dateTimeValue))
+            if (DateTime.TryParse(value, out var dateTimeValue))
                 return dateTimeValue;
             // Pour les autres types, on renvoie la chaîne telle quelle
             return value.ToString();

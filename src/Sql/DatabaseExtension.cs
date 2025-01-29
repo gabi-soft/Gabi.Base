@@ -198,7 +198,7 @@ namespace Gabi.Base.Sql
         public static async Task CompressAsync(this IDbConnection dbConnection)
         {
             var database = dbConnection.Database;
-            Log.Information("Compression de la base {database}", database);
+            Log.Information("Compression de la base {Database}", database);
             var databaseExist = await DatabaseExistAsync(dbConnection);
             if (!databaseExist)
                 return;

@@ -33,7 +33,8 @@ namespace Gabi.Base.Sql
         {
             if (sqlServerType is SqlServerType.SmallInt or SqlServerType.TinyInt)
                 Log.Warning(
-                    $"Pour avoir un uniformité des types de colonnes, il est recommandé de d'éviter d'utiliser {sqlServerType.ToString()} au profit du type Int.");
+                    "Pour avoir un uniformité des types de colonnes, il est recommandé de d'éviter d'utiliser {SqlServerType} au profit du type Int.",
+                    sqlServerType.ToString());
             else if (sqlServerType is SqlServerType.NText)
                 Log.Warning(
                     "Ntext est obsolète depuis SQL Server 2005, il est recommandé de l'éviter au profit de Nvarchar.");

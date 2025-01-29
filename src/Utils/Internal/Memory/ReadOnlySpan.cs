@@ -1,4 +1,6 @@
-﻿using System;
+﻿// ReSharper disable CheckNamespace
+
+using System;
 
 #if !NETCOREAPP2_1_OR_GREATER
 namespace Gabi.Base
@@ -12,7 +14,7 @@ namespace Gabi.Base.IGNORE
     internal class ReadOnlySpan<T> : Span<T>
 #endif
     {
-        public ReadOnlySpan(ref T[]? array) : base(ref array)
+        public ReadOnlySpan(ref T[] array) : base(ref array)
         {
         }
 
