@@ -31,10 +31,7 @@ namespace Gabi.Base.Data
             foreach (var line in File.ReadLines(filePath))
             {
                 var lineSpan = line.AsSpan();
-                if (lineSpan.Length == 0)
-                    Rows.Add(new List<object>());
-                else
-                    Rows.Add(ParseLine(lineSpan));
+                Rows.Add(lineSpan.Length == 0 ? new List<object>() : ParseLine(lineSpan));
             }
         }
 
@@ -46,10 +43,7 @@ namespace Gabi.Base.Data
         public async Task ReadCsvAsync(string filePath)
         {
             await foreach (var line in File.ReadLinesAsync(filePath))
-                if (line.Length == 0)
-                    Rows.Add(new List<object>());
-                else
-                    Rows.Add(ParseLine(line));
+                Rows.Add(line.Length == 0 ? new List<object>() : ParseLine(line));
         }
 #endif
 
