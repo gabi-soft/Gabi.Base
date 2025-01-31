@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.Data.SqlClient;
@@ -16,6 +17,7 @@ namespace Gabi.Base
         private string _password;
         private int? _port;
         private string _server;
+        private bool _trustServerCertificate = true;
 
         /// <summary>
         ///     Obtient ou définit le nom de la base de données.
@@ -61,6 +63,15 @@ namespace Gabi.Base
             set => SetField(ref _port, value);
         }
 
+        /// <summary>
+        ///     Valeur qui indique si le canal sera crypté tout en contournant le parcours de la chaîne de certificats pour valider la confiance.
+        /// </summary>
+        public bool TrustServerCertificate
+        {
+            get => _trustServerCertificate;
+            set => SetField(ref _trustServerCertificate, value);
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
@@ -69,13 +80,21 @@ namespace Gabi.Base
         /// <returns>La chaîne de connexion SQL.</returns>
         private string GetConnectionString()
         {
-            return new SqlConnectionStringBuilder
+            try
             {
-                DataSource = Port.HasValue ? $"{Server},{Port}" : Server,
-                InitialCatalog = Database,
-                UserID = Login,
-                Password = _password
-            }.ToString();
+                return new SqlConnectionStringBuilder
+                {
+                    DataSource = Port.HasValue ? $"{Server},{Port}" : Server,
+                    InitialCatalog = Database,
+                    UserID = Login,
+                    Password = _password,
+                    TrustServerCertificate = TrustServerCertificate
+                }.ToString();
+            }
+            catch (ArgumentException)
+            {
+                return string.Empty;
+            }
         }
 
         /// <summary>
