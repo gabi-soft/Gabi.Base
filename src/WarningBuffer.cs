@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using Serilog;
 
 namespace Gabi.Base
@@ -36,10 +37,16 @@ namespace Gabi.Base
         ///     Cette méthode utilise Serilog pour enregistrer les avertissements, puis réinitialise la liste
         ///     pour éviter une duplication future.
         /// </remarks>
-        public void Print()
+        public string Print()
         {
-            foreach (var warning in _warningList) Log.Warning(warning);
+            var sb = new StringBuilder();
+            foreach (var warning in _warningList)
+                sb.AppendLine(warning);
+
+            var warningStr = sb.ToString();
+            Log.Warning(warningStr);
             _warningList.Clear();
+            return warningStr;
         }
 
         /// <summary>
