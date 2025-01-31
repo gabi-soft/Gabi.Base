@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Gabi.Base.Data
 {
@@ -20,7 +21,10 @@ namespace Gabi.Base.Data
 
         public List<List<object>> Rows { get; }
 
-        // Lecture du CSV avec gestion des types
+        /// <summary>
+        ///     Lecture du CSV
+        /// </summary>
+        /// <param name="filePath">Chemin de CSV</param>
         public void ReadCsv(string filePath)
         {
             Rows.Clear();
@@ -34,11 +38,31 @@ namespace Gabi.Base.Data
             }
         }
 
-        // Écriture du CSV avec gestion des types
+#if NETCOREAPP2_2_OR_GREATER
+        /// <summary>
+        ///     Lecture du CSV asynchrone
+        /// </summary>
+        /// <param name="filePath">Chemin de CSV</param>
+        public async Task ReadCsvAsync(string filePath)
+        {
+            await foreach (var line in File.ReadLinesAsync(filePath))
+                if (line.Length == 0)
+                    Rows.Add(new List<object>());
+                else
+                    Rows.Add(ParseLine(line));
+        }
+#endif
+
+        /// <summary>
+        ///     Écriture du CSV
+        /// </summary>
+        /// <param name="filePath">Chemin de CSV</param>
+        /// <param name="append">Ajouter à la suite</param>
+        /// <param name="encoding">Encodage du fichier</param>
         public void WriteCsv(string filePath, bool append = false, Encoding encoding = null)
         {
             encoding ??= Encoding.Default;
-            using var writer = new StreamWriter(filePath, false, encoding);
+            using var writer = new StreamWriter(filePath, append, encoding);
 
             foreach (var row in Rows)
             {
@@ -50,6 +74,30 @@ namespace Gabi.Base.Data
                             : x?.ToString()
                     );
                 writer.WriteLine(string.Join(_separator.ToString(), rowValues));
+            }
+        }
+
+        /// <summary>
+        ///     Écriture du CSV asynchrone
+        /// </summary>
+        /// <param name="filePath">Chemin de CSV</param>
+        /// <param name="append">Ajouter à la suite</param>
+        /// <param name="encoding">Encodage du fichier</param>
+        public async Task WriteCsvAsync(string filePath, bool append = false, Encoding encoding = null)
+        {
+            encoding ??= Encoding.Default;
+            using var writer = new StreamWriter(filePath, append, encoding);
+
+            foreach (var row in Rows)
+            {
+                if (row.Count == 0) continue;
+                var rowValues = row
+                    .Select(
+                        x => x is string str && (ConvertToType(str) is not string || str.Contains(_quoteChar))
+                            ? $"{_quoteChar}{str.Replace($"{_quoteChar}", $"{_quoteChar}{_quoteChar}")}{_quoteChar}"
+                            : x?.ToString()
+                    );
+                await writer.WriteLineAsync(string.Join(_separator.ToString(), rowValues));
             }
         }
 
