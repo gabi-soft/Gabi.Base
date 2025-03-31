@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Gabi.Base.Utils
 {
-    internal static class JsonFile
+    public static class JsonFile
     {
         /// <summary>
         ///     Charge un fichier JSON
