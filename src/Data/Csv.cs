@@ -61,12 +61,7 @@ namespace Gabi.Base.Data
             foreach (var row in Rows)
             {
                 if (row.Count == 0) continue;
-                var rowValues = row
-                    .Select(
-                        x => x is string str && (ConvertToType(str) is not string || str.Contains(_quoteChar))
-                            ? $"{_quoteChar}{str.Replace($"{_quoteChar}", $"{_quoteChar}{_quoteChar}")}{_quoteChar}"
-                            : x?.ToString()
-                    );
+                var rowValues = FormatRowStringValues(row);
                 writer.WriteLine(string.Join(_separator.ToString(), rowValues));
             }
         }
@@ -85,12 +80,7 @@ namespace Gabi.Base.Data
             foreach (var row in Rows)
             {
                 if (row.Count == 0) continue;
-                var rowValues = row
-                    .Select(
-                        x => x is string str && (ConvertToType(str) is not string || str.Contains(_quoteChar))
-                            ? $"{_quoteChar}{str.Replace($"{_quoteChar}", $"{_quoteChar}{_quoteChar}")}{_quoteChar}"
-                            : x?.ToString()
-                    );
+                var rowValues = FormatRowStringValues(row);
                 await writer.WriteLineAsync(string.Join(_separator.ToString(), rowValues));
             }
         }
@@ -151,7 +141,7 @@ namespace Gabi.Base.Data
             if (value.Length == 0)
                 return null;
             if (value.Length >= 3 && value[0] == _quoteChar && value[value.Length - 1] == _quoteChar)
-                return value.Slice(1, value.Length - 2).ToString();
+                return value.Slice(1, value.Length - 2).ToString().Replace("\\n", "\n");
             if (double.TryParse(value, out var doubleValue))
                 return doubleValue;
             if (int.TryParse(value, out var intValue))
@@ -161,14 +151,22 @@ namespace Gabi.Base.Data
             if (DateTime.TryParse(value, out var dateTimeValue))
                 return dateTimeValue;
             // Pour les autres types, on renvoie la chaîne telle quelle
-            return value.ToString();
+            return value.ToString().Replace("\\n", "\n");
         }
 
+        /// <summary>
+        ///     Supprime les valeurs vides (null ou chaîne vide) de chaque ligne dans <see cref="Rows" />.
+        /// </summary>
         public void TrimEmptyValues()
         {
             foreach (var row in Rows) row.RemoveAll(static x => x == null || x == string.Empty);
         }
 
+        /// <summary>
+        ///     Normalise la longueur des lignes dans <see cref="Rows" /> en les remplissant avec <paramref name="fillValue" />
+        ///     jusqu'à atteindre la longueur maximale.
+        /// </summary>
+        /// <param name="fillValue">La valeur utilisée pour remplir les lignes plus courtes. Par défaut, <c>null</c>.</param>
         public void NormalizeRowLengths(object fillValue = null)
         {
             if (Rows.Count == 0) return;
@@ -179,6 +177,33 @@ namespace Gabi.Base.Data
             foreach (var row in Rows)
                 while (row.Count < maxLength)
                     row.Add(fillValue);
+        }
+
+        /// <summary>
+        ///     Formate les valeurs d'une ligne en les échappant si nécessaire.
+        ///     Les chaînes sont entourées de guillemets et les caractères spéciaux sont échappés.
+        /// </summary>
+        /// <param name="row">La collection d'objets à formater.</param>
+        /// <returns>Une séquence de chaînes formatées représentant les valeurs de la ligne.</returns>
+        private IEnumerable<string?> FormatRowStringValues(IEnumerable<object?> row)
+        {
+            foreach (var x in row)
+            {
+                if (x is string str)
+                {
+                    var converted = ConvertToType(str);
+                    if (converted is not string || str.Contains(_quoteChar))
+                    {
+                        var escaped = str
+                            .Replace($"{_quoteChar}", $"{_quoteChar}{_quoteChar}")
+                            .Replace("\n", "\\n");
+                        yield return $"{_quoteChar}{escaped}{_quoteChar}";
+                        continue;
+                    }
+                }
+
+                yield return x?.ToString()?.Replace("\n", "\\n");
+            }
         }
     }
 }

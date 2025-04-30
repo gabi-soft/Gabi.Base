@@ -56,8 +56,8 @@ namespace Gabi.Test.Data
             // Arrange
             var csv = new Csv(separator: '|');
             csv.Rows.Add(new List<object> { "Name", "Age", "City" });
-            csv.Rows.Add(new List<object> { "John", 30, "Paris" });
-            csv.Rows.Add(new List<object> { "John\"Junior", 12, "Paris" });
+            csv.Rows.Add(new List<object> { "John\nDoe", 30, "Paris" });
+            csv.Rows.Add(new List<object> { "John\"\nJunior", 12, "Paris" });
 
             // Act
             csv.WriteCsv(TestFilePath);
@@ -65,15 +65,15 @@ namespace Gabi.Test.Data
             // Assert
             var content = File.ReadAllText(TestFilePath);
             Assert.Contains("Name|Age|City", content);
-            Assert.Contains("John|30|Paris", content);
-            Assert.Contains("\"John\"\"Junior\"|12|Paris", content);
+            Assert.Contains("John\\nDoe|30|Paris", content);
+            Assert.Contains("\"John\"\"\\nJunior\"|12|Paris", content);
         }
 
         [Fact]
         public void ReadCsv_ShouldParseRowsCorrectly()
         {
             // Arrange
-            var csvContent = "Name;Age;IsMember\n\"John\"\"Junior\";30;true\nDoe;\"25\";false";
+            var csvContent = "Name;Age;IsMember\n\"John\"\"\\nJunior\";30;true\nJohn\\nDoe;\"25\";false";
             File.WriteAllText(TestFilePath, csvContent);
 
             var csv = new Csv(separator: ';');
@@ -86,10 +86,10 @@ namespace Gabi.Test.Data
             Assert.Equal("Name", csv.Rows[0][0]);
             Assert.Equal("Age", csv.Rows[0][1]);
             Assert.Equal("IsMember", csv.Rows[0][2]);
-            Assert.Equal("John\"Junior", csv.Rows[1][0]);
+            Assert.Equal("John\"\nJunior", csv.Rows[1][0]);
             Assert.Equal(30.0, csv.Rows[1][1]);
             Assert.Equal(true, csv.Rows[1][2]);
-            Assert.Equal("Doe", csv.Rows[2][0]);
+            Assert.Equal("John\nDoe", csv.Rows[2][0]);
             Assert.Equal("25", csv.Rows[2][1]);
             Assert.Equal(false, csv.Rows[2][2]);
         }
