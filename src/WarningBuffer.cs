@@ -1,6 +1,6 @@
-using System.Collections.Generic;
-using System.Text;
-using Serilog;
+using System;
+using Gabi.Base.Utils;
+using Serilog.Events;
 
 namespace Gabi.Base
 {
@@ -12,50 +12,26 @@ namespace Gabi.Base
     ///     Cette classe est utile pour collecter et gérer des messages d'avertissement tout au long
     ///     d'un processus, en évitant les doublons et en centralisant leur gestion.
     /// </remarks>
-    public class WarningBuffer
+    public class WarningBuffer : LogBuffer
     {
-        private readonly List<string> _warningList = new();
-
         /// <summary>
-        ///     Ajoute un message d'avertissement à la liste s'il n'est pas vide et s'il n'est pas déjà présent.
+        ///     Initialise une nouvelle instance de la classe <see cref="WarningBuffer"/> avec un niveau de log de type <see cref="LogEventLevel.Warning"/>.
         /// </summary>
-        /// <param name="warningMessage">Le message d'avertissement à ajouter.</param>
-        /// <remarks>
-        ///     Les messages d'avertissement en double ou vides ne sont pas ajoutés à la liste.
-        /// </remarks>
-        public void Add(string warningMessage)
+        public WarningBuffer() : base(LogEventLevel.Warning)
         {
-            if (!string.IsNullOrEmpty(warningMessage) && !_warningList.Contains(warningMessage))
-                _warningList.Add(warningMessage);
-        }
-
-        /// <summary>
-        ///     Affiche tous les messages d'avertissement dans la console en tant que journaux de niveau "Warning"
-        ///     puis efface la liste.
-        /// </summary>
-        /// <remarks>
-        ///     Cette méthode utilise Serilog pour enregistrer les avertissements, puis réinitialise la liste
-        ///     pour éviter une duplication future.
-        /// </remarks>
-        public string Print()
-        {
-            var sb = new StringBuilder();
-            foreach (var warning in _warningList)
-                sb.AppendLine(warning);
-
-            var warningStr = sb.ToString();
-            Log.Warning(warningStr);
-            _warningList.Clear();
-            return warningStr;
         }
 
         /// <summary>
         ///     Indique s'il existe des avertissements non traités dans la liste.
         /// </summary>
         /// <returns><c>true</c> si des avertissements sont présents. Sinon, <c>false</c>.</returns>
+        /// <remarks>
+        ///     Cette méthode est maintenant obsolète. Utilisez <see cref="LogBuffer.HasLogs"/> pour vérifier si des logs (y compris des avertissements) sont présents.
+        /// </remarks>
+        [Obsolete("Cette méthode est obsolète. Appelez HasLogs() à la place.")]
         public bool HasWarning()
         {
-            return _warningList.Count > 0;
+            return HasLogs();
         }
     }
 }
