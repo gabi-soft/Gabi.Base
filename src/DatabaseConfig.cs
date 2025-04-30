@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Common;
 using System.Runtime.CompilerServices;
-using Microsoft.Data.SqlClient;
 
 namespace Gabi.Base
 {
@@ -80,32 +80,27 @@ namespace Gabi.Base
         /// <returns>La chaîne de connexion SQL.</returns>
         private string GetConnectionString()
         {
-            try
-            {
-                return new SqlConnectionStringBuilder
-                {
-                    DataSource = Port.HasValue ? $"{Server},{Port}" : Server,
-                    InitialCatalog = Database,
-                    UserID = Login,
-                    Password = _password,
-                    TrustServerCertificate = TrustServerCertificate
-                }.ToString();
-            }
-            catch (ArgumentException)
-            {
-                return string.Empty;
-            }
+            var builder = new DbConnectionStringBuilder();
+
+            builder["Data Source"] = Port.HasValue ? $"{Server},{Port}" : Server;
+            builder["Initial Catalog"] = Database;
+            builder["User ID"] = Login;
+            builder["Password"] = _password;
+            builder["TrustServerCertificate"] = TrustServerCertificate;
+
+            return builder.ToString();
         }
 
         /// <summary>
         ///     Crée une nouvelle connexion SQL basée sur la chaîne de connexion.
         /// </summary>
         /// <returns>Un objet SqlConnection.</returns>
-        public SqlConnection GetConnection()
+        public DbConnection GetConnection<T>() where T : DbConnection
         {
             if (string.IsNullOrEmpty(_connectionString))
                 _connectionString = GetConnectionString();
-            return new SqlConnection(_connectionString);
+
+            return (T)Activator.CreateInstance(typeof(T), _connectionString);
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
