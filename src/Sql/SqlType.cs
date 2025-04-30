@@ -6,7 +6,7 @@ namespace Gabi.Base.Sql
     /// <summary>
     ///     Classe interne pour la conversion entre les types de données SQL Server et les types C#.
     /// </summary>
-    internal static class SqlType
+    public static class SqlType
     {
         /// <summary>
         ///     Convertit une représentation de chaîne de type de données SQL Server en une énumération
