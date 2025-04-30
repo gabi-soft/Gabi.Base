@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using Microsoft.Data.SqlClient;
 using Serilog;
 
 namespace Gabi.Base.Sql
@@ -79,7 +79,7 @@ namespace Gabi.Base.Sql
             {
                 await dbConnection.ExecuteAsync(query);
             }
-            catch (SqlException)
+            catch (DbException)
             {
                 return false;
             }
