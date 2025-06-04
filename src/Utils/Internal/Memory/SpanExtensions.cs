@@ -12,9 +12,7 @@ namespace Gabi.Base
 
         public static ReadOnlySpan<char> AsSpan(this string str)
         {
-            var array = new char[str.Length];
-            for (var i = 0; i < str.Length; i++)
-                array[i] = str[i];
+            var array = str.ToCharArray();
             return new ReadOnlySpan<char>(ref array);
         }
 #endif
