@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 // ReSharper disable CheckNamespace
 
@@ -32,7 +32,7 @@ namespace Gabi.Base.IGNORE
             return _array != null ? _array.GetHashCode() : 0;
         }
 
-        public static readonly T[] _fakeRef = Array.Empty<T>();
+        private static readonly T[] _fakeRef = Array.Empty<T>();
         private readonly T[] _array;
 
         public Span()
@@ -53,7 +53,7 @@ namespace Gabi.Base.IGNORE
         public Span(T[] array, int start, int length)
         {
             _array = length > 0 ? new T[length] : _fakeRef;
-            Array.Copy(array, start, _array, 0, 0 + length);
+            Array.Copy(array, start, _array, 0, length);
         }
 
         public virtual T this[int index]
@@ -131,9 +131,7 @@ namespace Gabi.Base.IGNORE
 
         public Span<T> Slice(int start)
         {
-            var ret = new T[_array.Length - start];
-            Array.Copy(_array, start, ret, 0, _array.Length - start);
-            return ret;
+            return new Span<T>(_array, start, _array.Length - start);
         }
 
         public Span<T> Trim()
@@ -156,9 +154,7 @@ namespace Gabi.Base.IGNORE
 
         public Span<T> Slice(int start, int length)
         {
-            var ret = new T[length];
-            Array.Copy(_array, start, ret, 0, length);
-            return ret;
+            return new Span<T>(_array, start, length);
         }
 
         public int Count(T value)
