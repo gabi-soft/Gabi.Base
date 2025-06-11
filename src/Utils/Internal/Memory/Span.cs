@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 // ReSharper disable CheckNamespace
 
@@ -14,24 +15,6 @@ namespace Gabi.Base.IGNORE
     internal class Span<T>
 #endif
     {
-        protected bool Equals(Span<T> other)
-        {
-            return Equals(_array, other._array);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is null) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-            return Equals((Span<T>)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return _array != null ? _array.GetHashCode() : 0;
-        }
-
         private static readonly T[] _fakeRef = Array.Empty<T>();
         private readonly T[] _array;
 
@@ -67,6 +50,37 @@ namespace Gabi.Base.IGNORE
         public bool IsEmpty => _array.Length == 0;
 
         public static Span<T> Empty => default;
+
+        protected bool Equals(Span<T> other)
+        {
+            return ArraysEqual(_array, other._array);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((Span<T>)obj);
+        }
+
+        private static bool ArraysEqual(T[] a1, T[] a2)
+        {
+            if (ReferenceEquals(a1, a2)) return true;
+            if (a1 is null || a2 is null) return false;
+            if (a1.Length != a2.Length) return false;
+
+            var comparer = EqualityComparer<T>.Default;
+            for (var i = 0; i < a1.Length; i++)
+                if (!comparer.Equals(a1[i], a2[i]))
+                    return false;
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            return _array != null ? _array.GetHashCode() : 0;
+        }
 
         public static bool operator !=(Span<T> left, Span<T> right)
         {
@@ -120,7 +134,7 @@ namespace Gabi.Base.IGNORE
 
         public static bool operator ==(Span<T> left, Span<T> right)
         {
-            return right?._array == left?._array;
+            return ArraysEqual(right?._array, left?._array);
         }
 
         public override string ToString()
