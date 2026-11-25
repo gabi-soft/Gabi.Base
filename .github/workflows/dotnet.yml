@@ -12,13 +12,18 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # requis pour le Trusted Publishing (OIDC)
+      contents: read
 
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: |
+          8.0.x
+          10.0.x
     - name: Restore dependencies
       run: cd src && dotnet restore
     - name: Set VERSION variable from tag
@@ -27,7 +32,10 @@ jobs:
       run: dotnet build --configuration Release /p:Version=${VERSION}
     - name: Generate NuGet package
       run: dotnet pack -c Release /p:Version=${VERSION} --no-build --output .
+    - name: NuGet login (OIDC)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: ${{ secrets.NUGET_USER }}
     - name: Push on nuget.org
-      env:
-        NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-      run: dotnet nuget push Gabi.Base.${VERSION}.nupkg -s "https://api.nuget.org/v3/index.json" -k "$NUGET_TOKEN"
+      run: dotnet nuget push Gabi.Base.${VERSION}.nupkg -s "https://api.nuget.org/v3/index.json" -k "${{ steps.login.outputs.NUGET_API_KEY }}"
