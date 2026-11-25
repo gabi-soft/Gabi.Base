@@ -30,9 +30,13 @@ namespace Gabi.Base.Sql
 
             var result = connection.Query(query, new { TableName = tableName });
 
+            // Seules les clés primaires : KEY_COLUMN_USAGE contient aussi les clés étrangères et uniques
             const string keysQuery =
-                @"SELECT COLUMN_NAME
-                  FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = @TableName";
+                @"SELECT k.COLUMN_NAME
+                  FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE k
+                  JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS c
+                    ON c.CONSTRAINT_NAME = k.CONSTRAINT_NAME AND c.TABLE_SCHEMA = k.TABLE_SCHEMA
+                  WHERE c.CONSTRAINT_TYPE = 'PRIMARY KEY' AND k.TABLE_NAME = @TableName";
 #if NETCOREAPP1_0_OR_GREATER
             var keys = connection.Query<string>(keysQuery, new { TableName = tableName }).ToHashSet();
 #else
@@ -113,8 +117,9 @@ namespace Gabi.Base.Sql
                 columnsString = string.Join(", ", columnsString, $"PRIMARY KEY ({string.Join(", ", primaryColomns)})");
             var query = $"CREATE TABLE [{table.Name}] ({columnsString})";
 
-            var rowsAffected = await dbConnection.ExecuteAsync(query);
-            return rowsAffected > 0;
+            // Un CREATE TABLE renvoie -1 (aucune ligne affectée) : l'absence d'exception signifie le succès
+            await dbConnection.ExecuteAsync(query);
+            return true;
         }
 
         /// <summary>
@@ -198,6 +203,8 @@ namespace Gabi.Base.Sql
         public static async Task CompressAsync(this IDbConnection dbConnection)
         {
             var database = dbConnection.Database;
+            if (!SqlObjectName.IsValidSqlObjectName(database))
+                throw new ArgumentException($"Le nom de la base ({database}) n'est pas valide.");
             Log.Information("Compression de la base {Database}", database);
             var databaseExist = await DatabaseExistAsync(dbConnection);
             if (!databaseExist)

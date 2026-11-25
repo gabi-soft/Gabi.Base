@@ -112,7 +112,7 @@ namespace Gabi.Base
         {
             if (EqualityComparer<T>.Default.Equals(field, value)) return false;
             field = value;
-            _connectionString = GetConnectionString();
+            _connectionString = null; // recalculée à la demande par GetConnection
             OnPropertyChanged(propertyName);
             return true;
         }

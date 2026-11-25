@@ -30,6 +30,8 @@ jobs:
       run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
     - name: Build
       run: dotnet build --configuration Release /p:Version=${VERSION}
+    - name: Test
+      run: dotnet test --configuration Release --no-build
     - name: Generate NuGet package
       run: dotnet pack -c Release /p:Version=${VERSION} --no-build --output .
     - name: NuGet login (OIDC)

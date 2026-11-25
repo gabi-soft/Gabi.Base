@@ -21,8 +21,12 @@ namespace Gabi.Base.Utils
 
         private static string GetAssemblyName()
         {
+            // Location est vide en single-file et l'assembly d'entrée peut être null (tests, hôtes natifs)
             var appPath = Assembly.GetEntryAssembly()?.Location;
-            return Path.GetFileNameWithoutExtension(appPath);
+            var name = string.IsNullOrEmpty(appPath)
+                ? AppDomain.CurrentDomain.FriendlyName
+                : Path.GetFileNameWithoutExtension(appPath);
+            return string.IsNullOrEmpty(name) ? "app" : name;
         }
     }
 }

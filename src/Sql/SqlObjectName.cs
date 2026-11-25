@@ -36,7 +36,7 @@ namespace Gabi.Base.Sql
         /// <returns><c>true</c> si le nom est valide, sinon <c>false</c>.</returns>
         public static bool IsValidSqlObjectName(string name)
         {
-            return IsValidSqlObjectName(name.AsSpan());
+            return name != null && IsValidSqlObjectName(name.AsSpan());
         }
     }
 }

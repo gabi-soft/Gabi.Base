@@ -42,6 +42,7 @@ namespace Gabi.Base.Data
         /// <param name="filePath">Chemin de CSV</param>
         public async Task ReadCsvAsync(string filePath)
         {
+            Rows.Clear();
             await foreach (var line in File.ReadLinesAsync(filePath))
                 Rows.Add(line.Length == 0 ? new List<object>() : ParseLine(line));
         }
@@ -97,7 +98,7 @@ namespace Gabi.Base.Data
             var field = new char[line.Length].AsSpan();
             var fieldPos = 0;
 
-            while (currentPos < line.Length && nbField > 1)
+            while (currentPos < line.Length)
             {
                 var currentChar = line[currentPos];
 
